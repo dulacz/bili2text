@@ -12,9 +12,10 @@
 
 # Bili2text 📺
 
-针对Issue中提出的问题，作者很快会一个一个解决。同时也希望大家可以一起帮忙贡献！
+## 转移说明
+因为作者的旧账号（lanbinshijie）已经停用，仓库已经转移到新账号（lanbinleo）
 
-感谢大家一年多来的支持！
+感谢各位的支持，如果有任何想法欢迎在issue中提出，或者提交pr~
 
 ![alt text](./assets/new_v_sc.png)
 
