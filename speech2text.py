@@ -16,13 +16,12 @@ def run_analysis(filename, model="tiny", prompt="以下是普通话的句子。"
     print("正在加载Whisper模型...")
     # 读取列表中的音频文件
     audio_list = os.listdir(f"audio/slice/{filename}")
-    print(audio_list)
     print("加载Whisper模型成功！")
     # 创建outputs文件夹
     os.makedirs("outputs", exist_ok=True)
     print("正在转换文本...")
 
-    audio_list.sort(key=lambda x: int(x.split(".")[0]))
+    audio_list.sort(key=lambda x: int(x.split(".")[0])) # 将 audio_list 按照切片序号排序
 
     i = 1
     for fn in audio_list:

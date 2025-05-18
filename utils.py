@@ -22,7 +22,7 @@ def download_video(bv_number):
     if not bv_number.startswith("BV"):
         bv_number = "BV" + bv_number
     video_url = f"https://www.bilibili.com/video/{bv_number}"
-    output_dir = f"bilibili_video/{bv_number}"
+    output_dir = f"bilibili_video/{bv_number}" # 下载视频到 bilibili_video/{bv_number} 目录
     ensure_folders_exist(output_dir)
     print(f"使用you-get下载视频: {video_url}")
     try:
@@ -32,7 +32,6 @@ def download_video(bv_number):
         else:
             print(result.stdout)
             print(f"视频已成功下载到目录: {output_dir}")
-            # 重命名下载的视频文件，假设下载的为最新的 .mp4 文件
             video_files = glob.glob(os.path.join(output_dir, "*.mp4"))
             if video_files:
                 # 删除xml文件

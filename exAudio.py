@@ -6,18 +6,18 @@ import glob
 import math
 
 def convert_flv_to_mp3(name, target_name=None, folder='bilibili_video'):
-    # 提取视频中的音频并保存为 MP3 到 audio/conv 目录
+    # 提取视频中的音频并保存为 MP3 到 audio/conv/{时间} 目录
     video_files = glob.glob(os.path.join(f"{folder}/{name}", "*.mp4"))
     for i in range(len(video_files)):
         clip = VideoFileClip(video_files[i])
         audio = clip.audio
         os.makedirs(f"audio/conv/{target_name}", exist_ok=True)
         output_name = target_name if target_name else name
-        audio.write_audiofile(f"audio/conv/{target_name}/{output_name}_{i}.mp3")
+        audio.write_audiofile(f"audio/conv/{target_name}/{output_name}_{i}.mp3") # 命名为 时间_序号.mp3
 
 def split_mp3(filename, folder_name, slice_length=45000, target_folder="audio/slice"):
     audio_files = glob.glob(os.path.join(filename, "*.mp3"))
-    cnt = 0
+    cnt = 0 # 切片序号，防止生成的文本乱序
     for audio_file in audio_files:
         print(f"Slicing {audio_file}")
         audio = AudioSegment.from_mp3(audio_file)
@@ -28,7 +28,7 @@ def split_mp3(filename, folder_name, slice_length=45000, target_folder="audio/sl
             cnt += 1
             start = i * slice_length
             if i == total_slices - 1:
-                end = -1
+                end = -1 # 最后一段长度不足 slice_length
             else:
                 end = start + slice_length
             slice_audio = audio[start:end]
