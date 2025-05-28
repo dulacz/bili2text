@@ -25,7 +25,7 @@ v2版本开发进度，请查看dev分支；v3版本更名为v2版本
 bili2text 是一个用于将 Bilibili 视频转换为文本的工具🛠️。这个项目通过一个简单的流程实现：下载视频、提取音频、分割音频，并使用 whisper 模型将语音转换为文本。整个过程是自动的，只需输入 Bilibili 视频的 av 号即可。整个过程行云流水，一步到胃😂
 
 ## 功能 🚀
-- 🎥**下载视频**：从 Bilibili 下载指定的视频。
+- 🎥**下载视频**：从 Bilibili 下载指定的视频，支持多P视频的下载。
 - 🎵**提取音频**：从下载的视频中提取音频。
 - 💬**音频分割**：将音频分割成小段，以便于进行高效的语音转文字处理。
 - 🤖**语音转文字**：使用 OpenAI 的 whisper 模型将音频转换为文本。
@@ -92,11 +92,8 @@ print("转换完成！", output_path)
 
 ## Star History ⭐
 
-<<<<<<< HEAD
-<img src="./assets/StarHistory.png" width="600">
-=======
 [![Star History Chart](https://api.star-history.com/svg?repos=lanbinshijie/bili2text&type=Date)](https://star-history.com/#lanbinshijie/bili2text&Date)
->>>>>>> a56ede18db36dfe9de0c7df5048ec8353f41f122
+
 
 
 ## 许可证 📄
