@@ -33,7 +33,7 @@ bili2text 是一个用于将 Bilibili 视频转换为文本的工具🛠️。�
 ## 使用方法 📘
 1. **克隆仓库**：
    ```bash
-   git clone https://github.com/lanbinshijie/bili2text.git
+   git clone https://github.com/lanbinleo/bili2text.git
    cd bili2text
    ```
 
