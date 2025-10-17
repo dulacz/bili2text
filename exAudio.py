@@ -58,7 +58,9 @@ def process_audio_split(name):
     # 生成唯一文件夹名，并依次调用转换和分割函数
     folder_name = time.strftime('%Y%m%d%H%M%S')
     convert_flv_to_mp3(name, target_name=folder_name)
-    conv_dir = f"audio/conv/{folder_name}"
-    split_mp3(conv_dir, folder_name)
+    conv_path = f"audio/conv/{folder_name}.mp3"
+    if not os.path.exists(conv_path):
+        raise FileNotFoundError(f"转换后的音频文件不存在: {conv_path}")
+    split_mp3(conv_path, folder_name)
     return folder_name
 
