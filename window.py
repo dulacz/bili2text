@@ -87,7 +87,24 @@ def on_generate_again_click():
     print(open_popup("是否再次生成？"))
 
 def on_clear_log_click():
-    log_text.delete('1.0', END)
+    # 临时恢复原始 stdout/stderr，避免清空期间的输出被重定向回 log_text
+    try:
+        sys.stdout = _orig_stdout
+        sys.stderr = _orig_stderr
+    except NameError:
+        # 如果还没初始化原始对象，跳过
+        pass
+    try:
+        log_text.config(state="normal")
+        log_text.delete('1.0', END)
+        log_text.config(state="disabled")
+    finally:
+        # 重新启用重定向（如果之前启用了）
+        try:
+            redirect_system_io()
+        except Exception:
+            # 避免在清空日志时抛出异常导致界面卡住
+            pass
 
 def on_show_result_click():
     print("这里是结果...")
@@ -114,15 +131,52 @@ def open_github_link(event=None):
     webbrowser.open_new("https://github.com/lanbinshijie/bili2text")
 
 def redirect_system_io():
+    global _orig_stdout, _orig_stderr
+    # 仅在首次调用时保存原始 stdout/stderr
+    if '_orig_stdout' not in globals():
+        _orig_stdout = sys.stdout
+        _orig_stderr = sys.stderr
+
     class StdoutRedirector:
+        def __init__(self):
+            self._buffer = ""
         def write(self, message, state="INFO"):
-            if message.strip() and "Speed" not in message:
-                log_text.config(state=NORMAL)
-                log_text.insert(END, f"[LOG][{state}] {message}\n")
-                log_text.config(state=DISABLED)
-                log_text.see(END)
+            if not message:
+                return
+            # 跳过进度信息
+            if "Speed" in message:
+                return
+            self._buffer += message
+            # 只在遇到换行时写入完整行，避免把片段拆成多行日志
+            while "\n" in self._buffer:
+                line, self._buffer = self._buffer.split("\n", 1)
+                if line.strip():
+                    try:
+                        log_text.config(state="normal")
+                        log_text.insert(END, f"[LOG][{state}] {line}\n")
+                        log_text.config(state="disabled")
+                        log_text.see(END)
+                    except Exception:
+                        # 如果 UI 还没准备好，回退写到原始 stdout，避免丢失日志或递归
+                        try:
+                            _orig_stdout.write(line + "\n")
+                        except Exception:
+                            pass
         def flush(self):
-            pass
+            if self._buffer.strip():
+                try:
+                    log_text.config(state="normal")
+                    log_text.insert(END, f"[LOG][INFO] {self._buffer}\n")
+                    log_text.config(state="disabled")
+                    log_text.see(END)
+                except Exception:
+                    try:
+                        _orig_stdout.write(self._buffer + "\n")
+                    except Exception:
+                        pass
+            self._buffer = ""
+
+    # 安装重定向器
     sys.stdout = StdoutRedirector()
     sys.stderr = StdoutRedirector()
 
