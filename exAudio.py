@@ -4,28 +4,26 @@ import os
 import time
 import subprocess
 
+
 def check_video_integrity(file_path):
     """使用 FFmpeg 验证视频文件完整性"""
-    result = subprocess.run(
-        ['ffmpeg', '-v', 'error', '-i', file_path, '-f', 'null', '-'],
-        stderr=subprocess.PIPE,
-        text=True
-    )
+    result = subprocess.run(["ffmpeg", "-v", "error", "-i", file_path, "-f", "null", "-"], stderr=subprocess.PIPE, text=True)
     if result.stderr:
         print(f"视频文件可能损坏: {file_path}")
         print(f"FFmpeg 错误信息: {result.stderr}")
         return False
     return True
 
-def convert_flv_to_mp3(name, target_name=None, folder='bilibili_video'):
+
+def convert_flv_to_mp3(name, target_name=None, folder="bilibili_video"):
     # 先尝试直接拼接 .mp4
-    input_path = f'{folder}/{name}.mp4'
+    input_path = f"{folder}/{name}.mp4"
     if not os.path.exists(input_path):
         # 如果不存在，尝试在文件夹下查找视频文件
-        dir_path = f'{folder}/{name}'
+        dir_path = f"{folder}/{name}"
         if os.path.isdir(dir_path):
             for file in os.listdir(dir_path):
-                if file.endswith(('.mp4', '.flv', '.mkv', '.avi')):
+                if file.endswith((".mp4", ".flv", ".mkv", ".avi")):
                     input_path = os.path.join(dir_path, file)
                     break
             else:
@@ -41,9 +39,10 @@ def convert_flv_to_mp3(name, target_name=None, folder='bilibili_video'):
     output_name = target_name if target_name else name
     audio.write_audiofile(f"audio/conv/{output_name}.mp3")
 
+
 def split_mp3(filename, folder_name, slice_length=45000, target_folder="audio/slice"):
     audio = AudioSegment.from_mp3(filename)
-    total_slices = (len(audio)+ slice_length - 1) // slice_length
+    total_slices = (len(audio) + slice_length - 1) // slice_length
     target_dir = os.path.join(target_folder, folder_name)
     os.makedirs(target_dir, exist_ok=True)
     for i in range(total_slices):
@@ -54,13 +53,27 @@ def split_mp3(filename, folder_name, slice_length=45000, target_folder="audio/sl
         slice_audio.export(slice_path, format="mp3")
         print(f"Slice {i+1} saved: {slice_path}")
 
-def process_audio_split(name):
-    # 生成唯一文件夹名，并依次调用转换和分割函数
-    folder_name = time.strftime('%Y%m%d%H%M%S')
-    convert_flv_to_mp3(name, target_name=folder_name)
-    conv_path = f"audio/conv/{folder_name}.mp3"
-    if not os.path.exists(conv_path):
-        raise FileNotFoundError(f"转换后的音频文件不存在: {conv_path}")
-    split_mp3(conv_path, folder_name)
-    return folder_name
 
+def process_audio_split(name, folder_name=None, skip_if_exists=True):
+    # 使用提供的folder_name，如果没有提供则使用时间戳
+    if folder_name is None:
+        folder_name = time.strftime("%Y%m%d%H%M%S")
+
+    conv_path = f"audio/conv/{folder_name}.mp3"
+    slice_dir = f"audio/slice/{folder_name}"
+
+    # 检查是否已存在转换后的音频文件
+    if skip_if_exists and os.path.exists(conv_path):
+        print(f"音频文件已存在，跳过下载和转换: {conv_path}")
+    else:
+        convert_flv_to_mp3(name, target_name=folder_name)
+        if not os.path.exists(conv_path):
+            raise FileNotFoundError(f"转换后的音频文件不存在: {conv_path}")
+
+    # 检查切片是否已存在
+    if os.path.exists(slice_dir) and len(os.listdir(slice_dir)) > 0:
+        print(f"切片已存在，跳过切片: {slice_dir}")
+    else:
+        split_mp3(conv_path, folder_name)
+
+    return folder_name
