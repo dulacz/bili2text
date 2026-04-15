@@ -12,6 +12,9 @@ build/
 develop-eggs/
 dist/
 downloads/
+inputs/
+input/
+cookies.txt
 eggs/
 .eggs/
 lib/
