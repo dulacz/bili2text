@@ -61,7 +61,7 @@ def run_analysis(filename, output_filename=None, model="tiny", prompt="以下是
         output_filename = filename
 
     # 清空输出文件（如果存在）
-    output_file_path = f"outputs/{output_filename}.txt"
+    output_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "outputs", f"{output_filename}.txt")
     if os.path.exists(output_file_path):
         os.remove(output_file_path)
 
