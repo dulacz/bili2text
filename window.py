@@ -9,8 +9,10 @@ from exAudio import convert_flv_to_mp3, split_mp3, process_audio_split
 
 speech_to_text = None  # 模型实例
 
+
 def is_cuda_available(whisper):
     return whisper.torch.cuda.is_available()
+
 
 def open_popup(text, title="提示"):
 
@@ -28,22 +30,26 @@ def open_popup(text, title="提示"):
     def on_confirm():
         user_choice.set("confirmed")
         popup.destroy()
+
     confirm_button = ttk.Button(popup, text="确定", style="primary.TButton", command=on_confirm)
     confirm_button.pack(side=LEFT, padx=10, pady=10)
 
     def on_cancel():
         user_choice.set("cancelled")
         popup.destroy()
+
     cancel_button = ttk.Button(popup, text="取消", style="outline-danger.TButton", command=on_cancel)
     cancel_button.pack(side=RIGHT, padx=10, pady=10)
     popup.wait_window()
     return user_choice.get()
+
 
 def show_log(text, state="INFO"):
 
     log_text.config(state="normal")
     log_text.insert(END, f"[LOG][{state}] {text}\n")
     log_text.config(state="disabled")
+
 
 def on_submit_click():
     global speech_to_text
@@ -57,7 +63,7 @@ def on_submit_click():
     if open_popup("是否确定生成？可能耗费时间较长", title="提示") == "cancelled":
         return
     # 提取BV号
-    pattern = r'BV[A-Za-z0-9]+'
+    pattern = r"BV[A-Za-z0-9]+"
     matches = re.findall(pattern, video_link)
     if not matches:
         print("无效的视频链接！")
@@ -66,6 +72,7 @@ def on_submit_click():
     print(f"视频链接: {video_link}, BV号: {bv_number}")
     thread = threading.Thread(target=process_video, args=(bv_number[2:],))
     thread.start()
+
 
 def process_video(av_number):
     print("=" * 10)
@@ -77,14 +84,15 @@ def process_video(av_number):
     folder_name = process_audio_split(file_identifier)
     print("=" * 10)
     print("正在转换文本（可能耗时较长）...")
-    speech_to_text.run_analysis(folder_name, 
-        prompt="以下是普通话的句子。这是一个关于{}的视频。".format(file_identifier))
-    output_path = f"outputs/{folder_name}.txt"
+    speech_to_text.run_analysis(folder_name, prompt="以下是普通话的句子。这是一个关于{}的视频。".format(file_identifier))
+    output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "outputs", f"{folder_name}.txt")
     print("转换完成！", output_path)
+
 
 def on_generate_again_click():
     print("再次生成...")
     print(open_popup("是否再次生成？"))
+
 
 def on_clear_log_click():
     # 临时恢复原始 stdout/stderr，避免清空期间的输出被重定向回 log_text
@@ -96,7 +104,7 @@ def on_clear_log_click():
         pass
     try:
         log_text.config(state="normal")
-        log_text.delete('1.0', END)
+        log_text.delete("1.0", END)
         log_text.config(state="disabled")
     finally:
         # 重新启用重定向（如果之前启用了）
@@ -106,40 +114,48 @@ def on_clear_log_click():
             # 避免在清空日志时抛出异常导致界面卡住
             pass
 
+
 def on_show_result_click():
     print("这里是结果...")
+
 
 def on_select_model():
     selected_model = model_var.get()
     print(f"选中的模型: {selected_model}")
     print("请点击加载Whisper按钮加载模型！")
 
+
 def on_confirm_model_click():
     selected_model = model_var.get()
     print(f"确认的模型: {selected_model}")
     print("请点击加载Whisper按钮加载模型！")
 
+
 def load_whisper_model():
     global speech_to_text
     import speech2text
+
     speech_to_text = speech2text
     speech_to_text.load_whisper(model=model_var.get())
     msg = "CUDA加速已启用" if is_cuda_available(speech_to_text.whisper) else "使用CPU计算"
     print("加载Whisper成功！", msg)
 
+
 def open_github_link(event=None):
     webbrowser.open_new("https://github.com/lanbinshijie/bili2text")
+
 
 def redirect_system_io():
     global _orig_stdout, _orig_stderr
     # 仅在首次调用时保存原始 stdout/stderr
-    if '_orig_stdout' not in globals():
+    if "_orig_stdout" not in globals():
         _orig_stdout = sys.stdout
         _orig_stderr = sys.stderr
 
     class StdoutRedirector:
         def __init__(self):
             self._buffer = ""
+
         def write(self, message, state="INFO"):
             if not message:
                 return
@@ -162,6 +178,7 @@ def redirect_system_io():
                             _orig_stdout.write(line + "\n")
                         except Exception:
                             pass
+
         def flush(self):
             if self._buffer.strip():
                 try:
@@ -180,13 +197,14 @@ def redirect_system_io():
     sys.stdout = StdoutRedirector()
     sys.stderr = StdoutRedirector()
 
+
 def main():
     global video_link_entry, log_text, model_var
     app = ttk.Window("Bili2Text - By Lanbin | www.lanbin.top", themename="litera")
     app.geometry("820x540")
     app.iconbitmap("favicon.ico")
     ttk.Label(app, text="Bilibili To Text", font=("Helvetica", 16)).pack(pady=10)
-    
+
     video_link_frame = ttk.Frame(app)
     video_link_entry = ttk.Entry(video_link_frame)
     video_link_entry.pack(side=LEFT, expand=YES, fill=X)
@@ -195,28 +213,28 @@ def main():
     submit_button = ttk.Button(video_link_frame, text="下载视频", command=on_submit_click)
     submit_button.pack(side=RIGHT, padx=5)
     video_link_frame.pack(fill=X, padx=20)
-    
+
     log_text = ttk.ScrolledText(app, height=10, state="disabled")
     log_text.pack(padx=20, pady=10, fill=BOTH, expand=YES)
-    
+
     controls_frame = ttk.Frame(app)
     controls_frame.pack(fill=X, padx=20)
     generate_button = ttk.Button(controls_frame, text="再次生成", command=on_generate_again_click)
     generate_button.pack(side=LEFT, padx=10, pady=10)
     show_result_button = ttk.Button(controls_frame, text="展示结果", command=on_show_result_click, bootstyle="success-outline")
     show_result_button.pack(side=LEFT, padx=10, pady=10)
-    
+
     model_var = ttk.StringVar(value="medium")
     model_combobox = ttk.Combobox(controls_frame, textvariable=model_var, values=["tiny", "small", "medium", "large"])
     model_combobox.pack(side=LEFT, padx=10, pady=10)
     model_combobox.set("small")
-    
+
     confirm_model_button = ttk.Button(controls_frame, text="确认模型", command=on_confirm_model_click, bootstyle="primary-outline")
     confirm_model_button.pack(side=LEFT, padx=10, pady=10)
-    
+
     clear_log_button = ttk.Button(controls_frame, text="清空日志", command=on_clear_log_click, bootstyle=DANGER)
     clear_log_button.pack(side=LEFT, padx=10, pady=10)
-    
+
     footer_frame = ttk.Frame(app)
     footer_frame.pack(side=BOTTOM, fill=X)
     author_label = ttk.Label(footer_frame, text="作者：Lanbin")
@@ -227,9 +245,10 @@ def main():
     github_link = ttk.Label(footer_frame, text="开源仓库", cursor="hand2", bootstyle=PRIMARY)
     github_link.pack(side=LEFT, padx=10, pady=10)
     github_link.bind("<Button-1>", open_github_link)
-    
+
     redirect_system_io()
     app.mainloop()
+
 
 if __name__ == "__main__":
     main()

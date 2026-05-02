@@ -6,6 +6,9 @@ from utils import download_video
 from exAudio import *
 from speech2text import *
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
+
 # Main文件是作者用来测试的，请运行window.py
 
 
@@ -50,7 +53,7 @@ def process_single_video(bv_number):
         foldername = process_audio_split(filename, folder_name=bv_number)
 
         run_analysis(foldername, output_filename=bv_number, prompt="以下是普通话的句子。")
-        output_path = f"outputs/{bv_number}.txt"
+        output_path = os.path.join(OUTPUT_DIR, f"{bv_number}.txt")
 
         print(f"\n✓ 完成处理: {bv_number} -> {output_path}")
         return (bv_number, True, output_path)
@@ -152,6 +155,6 @@ else:
 
     load_whisper("medium")
     run_analysis(foldername, output_filename=bv_number, prompt="以下是普通话的句子。")
-    output_path = f"outputs/{bv_number}.txt"
+    output_path = os.path.join(OUTPUT_DIR, f"{bv_number}.txt")
     print("转换完成！", output_path)
     cleanup_media_folders()
