@@ -3,6 +3,12 @@ import re
 import subprocess
 import sys
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+AUDIO_CONV_DIR = os.path.join(BASE_DIR, "audio", "conv")
+AUDIO_DIR = os.path.join(BASE_DIR, "audio")
+OUTPUTS_DIR = os.path.join(BASE_DIR, "outputs")
+BILIBILI_VIDEO_DIR = os.path.join(BASE_DIR, "bilibili_video")
+
 
 def ensure_folders_exist(*dirs):
     for d in dirs:
@@ -20,14 +26,13 @@ def download_video(bv_number):
     if not bv_number.startswith("BV"):
         bv_number = "BV" + bv_number
     video_url = f"https://www.bilibili.com/video/{bv_number}"
-    audio_output_dir = "audio/conv"
-    ensure_folders_exist(audio_output_dir, "outputs")
+    audio_output_dir = AUDIO_CONV_DIR
+    ensure_folders_exist(audio_output_dir, OUTPUTS_DIR)
     output_path = os.path.join(audio_output_dir, f"{bv_number}.mp3")
     print(f"使用yt-dlp下载音频: {video_url}")
 
     # 优先使用项目根目录下的 cookies.txt，用于下载需要登录的视频
-    project_dir = os.path.dirname(os.path.abspath(__file__))
-    cookies_path = os.path.join(project_dir, "cookies.txt")
+    cookies_path = os.path.join(BASE_DIR, "cookies.txt")
 
     try:
         cmd = [
@@ -89,14 +94,13 @@ def download_youtube_audio(video_id):
         video_url = f"https://www.youtube.com/watch?v={video_id}"
 
     identifier = f"YT_{real_id}"
-    audio_output_dir = "audio/conv"
-    ensure_folders_exist(audio_output_dir, "outputs")
+    audio_output_dir = AUDIO_CONV_DIR
+    ensure_folders_exist(audio_output_dir, OUTPUTS_DIR)
     output_path = os.path.join(audio_output_dir, f"{identifier}.mp3")
     print(f"使用yt-dlp下载YouTube音频: {video_url}")
 
     # 优先使用项目根目录下的 cookies.txt（YouTube会员/限制视频可能需要）
-    project_dir = os.path.dirname(os.path.abspath(__file__))
-    cookies_path = os.path.join(project_dir, "cookies.txt")
+    cookies_path = os.path.join(BASE_DIR, "cookies.txt")
 
     try:
         cmd = [
@@ -143,7 +147,7 @@ def download_youtube(url, fmt="mp3"):
         fmt: 'mp3' for audio only, 'mp4' for video
     """
     if fmt == "mp3":
-        output_dir = "audio"
+        output_dir = AUDIO_DIR
         ensure_folders_exist(output_dir)
         output_template = os.path.join(output_dir, "%(title)s.%(ext)s")
         cmd = [
@@ -160,7 +164,7 @@ def download_youtube(url, fmt="mp3"):
             url,
         ]
     elif fmt == "mp4":
-        output_dir = "bilibili_video"
+        output_dir = BILIBILI_VIDEO_DIR
         ensure_folders_exist(output_dir)
         output_template = os.path.join(output_dir, "%(title)s.%(ext)s")
         cmd = [

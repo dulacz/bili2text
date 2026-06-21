@@ -9,6 +9,9 @@ from speech2text import *
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
+AUDIO_CONV_DIR = os.path.join(BASE_DIR, "audio", "conv")
+AUDIO_SLICE_DIR = os.path.join(BASE_DIR, "audio", "slice")
+INPUTS_DIR = os.path.join(BASE_DIR, "inputs")
 
 # Main文件是作者用来测试的，请运行window.py
 
@@ -36,8 +39,8 @@ def process_local_media_file(file_path):
         print(f"开始处理本地文件: {file_path}")
         print(f"{'='*60}")
 
-        conv_audio_path = f"audio/conv/{identifier}.mp3"
-        os.makedirs("audio/conv", exist_ok=True)
+        conv_audio_path = os.path.join(AUDIO_CONV_DIR, f"{identifier}.mp3")
+        os.makedirs(AUDIO_CONV_DIR, exist_ok=True)
 
         if not os.path.exists(conv_audio_path):
             ext = os.path.splitext(file_path)[1].lower()
@@ -70,7 +73,7 @@ def process_local_media_file(file_path):
 
 def cleanup_media_folders():
     """清理 audio 文件夹下的所有文件和子文件夹"""
-    for folder in ["audio/conv", "audio/slice"]:
+    for folder in [AUDIO_CONV_DIR, AUDIO_SLICE_DIR]:
         if os.path.exists(folder):
             shutil.rmtree(folder)
             os.makedirs(folder, exist_ok=True)
@@ -133,7 +136,7 @@ def process_single_video(identifier, platform=None):
         print(f"{'='*60}")
 
         # 检查是否已有转换后的音频文件（命名统一为 audio/conv/<identifier>.mp3）
-        conv_audio_path = f"audio/conv/{identifier}.mp3"
+        conv_audio_path = os.path.join(AUDIO_CONV_DIR, f"{identifier}.mp3")
         if os.path.exists(conv_audio_path):
             print(f"检测到已存在音频文件: {conv_audio_path}")
             print("跳过视频下载，直接使用已有音频")
@@ -227,7 +230,7 @@ else:
     input_arg = input("请输入BV号或YouTube链接[默认读取input.txt]：").strip()
     if not input_arg:
         # 用户按下Enter，使用默认的input.txt
-        default_input = os.path.join(os.path.dirname(os.path.abspath(__file__)), "inputs", "input.txt")
+        default_input = os.path.join(INPUTS_DIR, "input.txt")
         if os.path.exists(default_input):
             input_arg = default_input
         else:

@@ -3,6 +3,10 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+AUDIO_SLICE_DIR = os.path.join(BASE_DIR, "audio", "slice")
+OUTPUTS_DIR = os.path.join(BASE_DIR, "outputs")
+
 whisper_model = None
 
 # 线程数
@@ -38,7 +42,8 @@ def _transcribe_slice(index, fn, filename, prompt, total):
     """转录单个音频切片，返回 (index, text)"""
     model = _get_thread_model()
     print(f"[线程 {threading.current_thread().name}] 正在转换第{index + 1}/{total}个音频... {fn}")
-    result = model.transcribe(f"audio/slice/{filename}/{fn}", initial_prompt=prompt)
+    slice_path = os.path.join(AUDIO_SLICE_DIR, filename, fn)
+    result = model.transcribe(slice_path, initial_prompt=prompt)
     text = "".join([seg["text"] for seg in result["segments"] if seg is not None])
     print(f"[线程 {threading.current_thread().name}] 完成第{index + 1}/{total}个音频: {fn}")
     return index, text
@@ -48,12 +53,13 @@ def run_analysis(filename, output_filename=None, model="tiny", prompt="以下是
     global whisper_model
     print("正在加载Whisper模型...")
     # 读取列表中的音频文件
-    audio_list = os.listdir(f"audio/slice/{filename}")
+    slice_folder = os.path.join(AUDIO_SLICE_DIR, filename)
+    audio_list = os.listdir(slice_folder)
     print("加载Whisper模型成功！")
     # 添加排序逻辑
     audio_files = sorted(audio_list, key=lambda x: int(os.path.splitext(x)[0]))  # 按文件名数字排序
     # 创建outputs文件夹
-    os.makedirs("outputs", exist_ok=True)
+    os.makedirs(OUTPUTS_DIR, exist_ok=True)
     print(f"正在转换文本（{NUM_THREADS}线程并行）...")
 
     # 如果没有指定output_filename，使用filename
@@ -61,7 +67,7 @@ def run_analysis(filename, output_filename=None, model="tiny", prompt="以下是
         output_filename = filename
 
     # 清空输出文件（如果存在）
-    output_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "outputs", f"{output_filename}.txt")
+    output_file_path = os.path.join(OUTPUTS_DIR, f"{output_filename}.txt")
     if os.path.exists(output_file_path):
         os.remove(output_file_path)
 
