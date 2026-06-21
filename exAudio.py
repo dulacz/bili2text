@@ -1,8 +1,18 @@
-from moviepy.editor import VideoFileClip
+try:
+    # moviepy 2.x
+    from moviepy import VideoFileClip
+except ImportError:
+    # moviepy 1.x
+    from moviepy.editor import VideoFileClip
 from pydub import AudioSegment
 import os
 import time
 import subprocess
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+AUDIO_CONV_DIR = os.path.join(BASE_DIR, "audio", "conv")
+AUDIO_SLICE_DIR = os.path.join(BASE_DIR, "audio", "slice")
+BILIBILI_VIDEO_DIR = os.path.join(BASE_DIR, "bilibili_video")
 
 
 def check_video_integrity(file_path):
@@ -15,12 +25,14 @@ def check_video_integrity(file_path):
     return True
 
 
-def convert_flv_to_mp3(name, target_name=None, folder="bilibili_video"):
+def convert_flv_to_mp3(name, target_name=None, folder=None):
+    if folder is None:
+        folder = BILIBILI_VIDEO_DIR
     # 先尝试直接拼接 .mp4
-    input_path = f"{folder}/{name}.mp4"
+    input_path = os.path.join(folder, f"{name}.mp4")
     if not os.path.exists(input_path):
         # 如果不存在，尝试在文件夹下查找视频文件
-        dir_path = f"{folder}/{name}"
+        dir_path = os.path.join(folder, name)
         if os.path.isdir(dir_path):
             for file in os.listdir(dir_path):
                 if file.endswith((".mp4", ".flv", ".mkv", ".avi")):
@@ -35,12 +47,14 @@ def convert_flv_to_mp3(name, target_name=None, folder="bilibili_video"):
     # 提取视频中的音频并保存为 MP3 到 audio/conv 目录
     clip = VideoFileClip(input_path)
     audio = clip.audio
-    os.makedirs("audio/conv", exist_ok=True)
+    os.makedirs(AUDIO_CONV_DIR, exist_ok=True)
     output_name = target_name if target_name else name
-    audio.write_audiofile(f"audio/conv/{output_name}.mp3")
+    audio.write_audiofile(os.path.join(AUDIO_CONV_DIR, f"{output_name}.mp3"))
 
 
-def split_mp3(filename, folder_name, slice_length=45000, target_folder="audio/slice"):
+def split_mp3(filename, folder_name, slice_length=45000, target_folder=None):
+    if target_folder is None:
+        target_folder = AUDIO_SLICE_DIR
     audio = AudioSegment.from_mp3(filename)
     total_slices = (len(audio) + slice_length - 1) // slice_length
     target_dir = os.path.join(target_folder, folder_name)
@@ -59,8 +73,8 @@ def process_audio_split(name, folder_name=None, skip_if_exists=True):
     if folder_name is None:
         folder_name = time.strftime("%Y%m%d%H%M%S")
 
-    conv_path = f"audio/conv/{folder_name}.mp3"
-    slice_dir = f"audio/slice/{folder_name}"
+    conv_path = os.path.join(AUDIO_CONV_DIR, f"{folder_name}.mp3")
+    slice_dir = os.path.join(AUDIO_SLICE_DIR, folder_name)
 
     # 检查是否已存在转换后的音频文件
     if skip_if_exists and os.path.exists(conv_path):
